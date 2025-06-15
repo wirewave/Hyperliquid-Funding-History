@@ -1,552 +1,510 @@
 <!DOCTYPE html>
 <html lang="en">
-   <head>
-      <meta charset="UTF-8" />
-      <title>Funding History Viewer</title>
-      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-      <style>
-         :root {
-        --bg-color: #ffffff;
-        --text-color: #000000;
-        --card-color: #ffffff;
-        --input-bg: #ffffff;
-        --input-border: #000000;
-        --button-bg: #194d44;
-        --button-hover: #0f2e29;
-        --fundingrate-line: black;
-        --bg-overlay: #e1e1e1bf;
-        --box-shadow: rgba(0, 0, 0, 0.6);
-        --chart-text: #000000;
-        --grid-color: rgba(0, 0, 0, 0.1);
-        --highlight-bg: #e0f2fe;
+  <head>
+    <meta charset="UTF-8" />
+    <title>Funding History Viewer</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      :root {
+      --bg-color: #ffffff;
+      --text-color: #000000;
+      --card-color: #ffffff;
+      --input-bg: #ffffff;
+      --input-border: #000000;
+      --button-bg: #194d44;
+      --button-hover: #0f2e29;
+      --fundingrate-line: black;
+      --bg-overlay: #e1e1e1bf;
+      --box-shadow: rgba(0, 0, 0, 0.6);
+      --chart-text: #000000;
+      --grid-color: rgba(0, 0, 0, 0.1);
+      --highlight-bg: #e0f2fe;
       }
-
       body {
-        font-family: Arial, sans-serif;
-        padding: 2rem;
-        max-width: 1000px;
-        margin: auto;
-        background: var(--bg-color);
-        color: var(--text-color);
-        transition: background 0.3s, color 0.3s;
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      max-width: 1000px;
+      margin: auto;
+      background: var(--bg-color);
+      color: var(--text-color);
+      transition: background 0.3s, color 0.3s;
       }
-
       h2 {
-        margin-bottom: 1.5rem;
+      margin-bottom: 1.5rem;
       }
-
       .theme-toggle {
-        position: fixed;
-        top: 1rem;
-        right: 1rem;
-        cursor: pointer;
-        font-size: 1.5rem;
-        user-select: none;
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      cursor: pointer;
+      font-size: 1.5rem;
+      user-select: none;
       }
-
-      /* Controls & layout */
+      /* Controls container and layout */
       .controls {
-        display: flex;
-        flex-direction: column;
-        gap: 2rem;
-        background: var(--card-color);
-        padding: 1.5rem;
-        border-radius: 12px;
-        box-shadow: 0 2px 6px var(--box-shadow);
-        margin-bottom: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      background: var(--card-color);
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px var(--box-shadow);
+      margin-bottom: 2rem;
       }
-
+      /* Rows within controls for form grouping */
       .row {
-        display: flex;
-        gap: 1.5rem;
-        flex-wrap: wrap;
-        align-items: flex-start;
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      align-items: flex-start;
       }
-
       .row.vertical-stack {
-        flex-direction: column;
-        gap: 2rem;
-        align-items: center;
+      flex-direction: column;
+      gap: 2rem;
+      align-items: center;
       }
-
+      /* Control groups for inputs and dropdowns */
       .control-group {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        min-width: 250px;
-        max-width: 100%;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 250px;
+      max-width: 100%;
       }
-
+      /* Dropdown styles */
       .token-selector {
-        position: relative;
-        width: 100%;
+      position: relative;
+      width: 100%;
       }
-
       .dropdown {
-        width: 100%;
-        position: relative;
-        border: 1px solid var(--input-border);
-        border-radius: 0.75rem;
-        background: var(--input-bg);
-        color: var(--text-color);
-        box-shadow: 0 2px 4px var(--box-shadow);
-        box-sizing: border-box;
-        min-height: 48px;
+      width: 100%;
+      position: relative;
+      border: 1px solid var(--input-border);
+      border-radius: 0.75rem;
+      background: var(--input-bg);
+      color: var(--text-color);
+      box-shadow: 0 2px 4px var(--box-shadow);
+      box-sizing: border-box;
+      min-height: 48px;
       }
-
       .selected {
-        padding: 0.75rem 1rem;
-        font-size: 1rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-radius: 0.75rem;
-        width: 100%;
-        box-sizing: border-box;
-        cursor: pointer;
-        transition: background 0.2s ease;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: 0.75rem;
+      width: 100%;
+      box-sizing: border-box;
+      cursor: pointer;
+      transition: background 0.2s ease;
       }
-
       .selected:hover {
-        background: #f3f4f6;
+      background: #f3f4f6;
       }
-
       .arrow {
-        transition: transform 0.3s ease;
-        display: inline-block;
+      transition: transform 0.3s ease;
+      display: inline-block;
       }
-
       .arrow.open {
-        transform: rotate(180deg);
+      transform: rotate(180deg);
       }
-
       .dropdown-list {
-        display: none;
-        position: absolute;
-        width: 100%;
-        background: var(--card-color);
-        border-radius: 0.75rem;
-        margin-top: 0.25rem;
-        border: 1px solid var(--input-border);
-        max-height: 320px;
-        overflow-y: auto;
-        z-index: 20;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
-        box-sizing: border-box;
+      display: none;
+      position: absolute;
+      width: 100%;
+      background: var(--card-color);
+      border-radius: 0.75rem;
+      margin-top: 0.25rem;
+      border: 1px solid var(--input-border);
+      max-height: 320px;
+      overflow-y: auto;
+      z-index: 20;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
+      box-sizing: border-box;
       }
-
       /* Search input inside dropdown */
       .search-input {
-        width: 100%;
-        padding: 0.5rem 1rem;
-        border: none;
-        border-bottom: 1px solid var(--input-border);
-        outline: none;
-        box-sizing: border-box;
-        font-size: 1rem;
-        border-radius: 0;
+      width: 100%;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-bottom: 1px solid var(--input-border);
+      outline: none;
+      box-sizing: border-box;
+      font-size: 1rem;
+      border-radius: 0;
       }
-
       /* Dropdown items */
       .dropdown-item {
-        padding: 0.75rem 1rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        transition: background 0.2s ease;
-        width: 100%;
-        box-sizing: border-box;
-        cursor: pointer;
+      padding: 0.75rem 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.2s ease;
+      width: 100%;
+      box-sizing: border-box;
+      cursor: pointer;
       }
-
       .dropdown-item:hover {
-        background: #f3f4f6;
+      background: #f3f4f6;
       }
-
       .dropdown-item.selected-token {
-        background-color: var(--highlight-bg);
-        font-weight: 600;
+      background-color: var(--highlight-bg);
+      font-weight: 600;
       }
-
       .dropdown-item span:first-child {
-        flex-grow: 1;
+      flex-grow: 1;
       }
-
       .star {
-        cursor: pointer;
-        font-size: 1rem;
-        transition: transform 0.2s ease;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: transform 0.2s ease;
       }
-
       .star:hover {
-        transform: scale(1.2);
+      transform: scale(1.2);
       }
-
+      /* Section labels within dropdowns */
       .section-label {
-        font-size: 0.85rem;
-        font-weight: 500;
-        color: #6b7280;
-        padding: 0.5rem 1rem 0.25rem;
-        background-color: var(--card-color);
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #6b7280;
+      padding: 0.5rem 1rem 0.25rem;
+      background-color: var(--card-color);
       }
-
-      /* Dataset dropdown options */
+      /* Dataset dropdown-specific options */
       .dataset-option {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.75rem 1rem;
-        cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1rem;
+      cursor: pointer;
       }
-
       .dataset-option:hover {
-        background: #f3f4f6;
+      background: #f3f4f6;
       }
-
       .dataset-option span {
-        flex-grow: 1;
-        font-size: 1rem;
+      flex-grow: 1;
+      font-size: 1rem;
       }
-
-      /* Inputs, buttons, spinners */
+      /* Inputs and buttons */
       input, select, button {
-        padding: 0.6rem;
-        font-size: 16px;
-        background: var(--input-bg);
-        color: var(--text-color);
-        border: 1px solid var(--input-border);
-        border-radius: 6px;
+      padding: 0.6rem;
+      font-size: 16px;
+      background: var(--input-bg);
+      color: var(--text-color);
+      border: 1px solid var(--input-border);
+      border-radius: 6px;
       }
-
       button {
-        background-color: var(--button-bg);
-        color: white;
-        cursor: pointer;
-        border: none;
-        transition: background-color 0.3s;
+      background-color: var(--button-bg);
+      color: white;
+      cursor: pointer;
+      border: none;
+      transition: background-color 0.3s;
       }
-
       button:hover {
-        background-color: var(--button-hover);
+      background-color: var(--button-hover);
       }
-
+      /* Canvas */
       canvas {
-        max-width: 100%;
+      max-width: 100%;
       }
-
+      /* Spinner overlay */
       .spinner-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        height: 100vh;
-        width: 100vw;
-        background-color: var(--bg-overlay);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-        display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 100vw;
+      background-color: var(--bg-overlay);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      display: none;
       }
-
       .spinner {
-        border: 8px solid #f3f3f3;
-        border-top: 8px solid var(--button-bg);
-        border-radius: 50%;
-        width: 60px;
-        height: 60px;
-        animation: spin 1s linear infinite;
+      border: 8px solid #f3f3f3;
+      border-top: 8px solid var(--button-bg);
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
       }
-
       @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
       }
-
-      /* Quick range and custom range controls */
+      /* Quick buttons grid */
       .quick-buttons {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-        gap: 1rem;
-        width: 100%;
-        margin-top: 0.5rem;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+      width: 100%;
+      margin-top: 0.5rem;
       }
-
+      .quick-buttons button {
+      padding: 0.5rem;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      background-color: #e5e7eb;
+      color: #111827;
+      border: 1px solid #d1d5db;
+      box-shadow: none;
+      }
+      .quick-buttons button:hover {
+      background-color: #d1d5db;
+      }
+      /* Custom range inputs */
       .custom-range-inputs {
-        flex-direction: column;
-        gap: 0.5rem;
-        width: 100%;
+      flex-direction: column;
+      gap: 0.5rem;
+      width: 100%;
       }
-
       .custom-range-inputs input {
-        width: 100%;
-        max-width: 320px;
+      width: 100%;
+      max-width: 320px;
       }
-
-      /* MA stats table */
+      /* Date row in range selector */
+      .custom-date-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      width: 100%;
+      }
+      .custom-date-row input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--input-border);
+      background: var(--input-bg);
+      color: var(--text-color);
+      box-shadow: 0 2px 4px var(--box-shadow);
+      font-size: 1rem;
+      justify-content: center;
+      }
+      /* Date separator */
+      .date-separator {
+      font-weight: bold;
+      font-size: 1.25rem;
+      margin: 0 0.5rem;
+      }
+      /* Load button */
+      .load-btn {
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 1rem;
+      border-radius: 10px;
+      }
+      /* Range selector container */
+      .range-selector {
+      background: var(--card-color);
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px var(--box-shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      }
+      /* Adjust quick buttons grid for smaller screens */
+      @media (max-width: 768px) {
+      .quick-buttons {
+      grid-template-columns: repeat(2, 1fr);
+      }
+      }
+      /* Table for moving averages stats */
       .ma-stats-table {
-        width: 100%;
-        margin: 1.5rem 0;
-        font-size: 0.95rem;
+      width: 100%;
+      margin: 1.5rem 0;
+      font-size: 0.95rem;
       }
-
       .ma-stats-table table {
-        width: 100%;
-        border-collapse: collapse;
-        text-align: center;
-        background-color: var(--card-color);
-        border: 1px solid var(--input-border);
-        border-radius: 10px;
-        overflow: hidden;
-        box-shadow: 0 1px 4px var(--box-shadow);
+      width: 100%;
+      border-collapse: collapse;
+      text-align: center;
+      background-color: var(--card-color);
+      border: 1px solid var(--input-border);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px var(--box-shadow);
       }
-
       .ma-stats-table th,
       .ma-stats-table td {
-        padding: 0.75rem 1rem;
-        border-bottom: 1px solid var(--input-border);
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--input-border);
       }
-
       .ma-stats-table th {
-        background-color: var(--card-bg-hover);
-        font-weight: 600;
+      font-weight: 600;
       }
-
+      /* Border colors for each MA column */
       #maStatsTable-MA-Range { border-color:#FF6B6B; }
       #maStatsTable-MA-24h { border-color:#F4A261; }
       #maStatsTable-MA-3D { border-color: #E9C46A; }
       #maStatsTable-MA-7D { border-color: #2A9D8F; }
-      #maStatsTable-MA-14D { border-color: #3A86FF;}
+      #maStatsTable-MA-14D { border-color: #3A86FF; }
       #maStatsTable-MA-30D { border-color: #8338EC; }
-
+      /* Moving average footnote */
       .ma-footnote {
-        font-size: 0.75rem;
-        margin-top: 0.5rem;
-        text-align: right;
-        opacity: 0.7;
+      font-size: 0.75rem;
+      margin-top: 0.5rem;
+      text-align: right;
+      opacity: 0.7;
       }
-
-      /* Responsive adjustments */
+      /* Responsive layout for controls */
       @media (max-width: 1023px) {
-        .row {
-          flex-direction: column;
-          gap: 1rem;
-        }
-
-        .dropdown {
-          width: 100%;
-        }
-
-        .dropdown-list {
-          left: 0;
-          right: 0;
-          width: auto;
-          min-width: 100%;
-          box-sizing: border-box;
-        }
-        .controls {
-          padding: 1rem;
-          gap: 1rem;
-        }
-
-        .control-group label {
-          font-size: 0.95rem;
-        }
-
-        .selected {
-          font-size: 0.95rem;
-        }
-
-        .control-group {
-          min-width: 100%;
-          max-width: 100%;
-        }
+      .row {
+      flex-direction: column;
+      gap: 1rem;
       }
-      .range-selector {
-  background: var(--card-color);
-  padding: 2rem;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px var(--box-shadow);
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.range-title {
-  font-size: 1rem;
-  font-weight: 600;
-  text-align: center;
-}
-
-.quick-buttons {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.75rem;
-}
-
-@media (max-width: 768px) {
-  .quick-buttons {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-.quick-buttons button {
-  padding: 0.5rem;
-  border-radius: 10px;
-  font-size: 0.9rem;
-  background-color: #e5e7eb;
-  color: #111827;
-  border: 1px solid #d1d5db;
-  box-shadow: none;
-}
-
-.quick-buttons button:hover {
-  background-color: #d1d5db;
-}
-
-.custom-date-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  width: 100%;
-}
-
-.custom-date-row input {
-  flex: 1;
-  padding: 0.75rem 1rem;
-  border-radius: 12px;
-  border: 1px solid var(--input-border);
-  background: var(--input-bg);
-  color: var(--text-color);
-  box-shadow: 0 2px 4px var(--box-shadow);
-  font-size: 1rem;
-  justify-content: center;
-}
-
-.date-separator {
-  font-weight: bold;
-  font-size: 1.25rem;
-  margin: 0 0.5rem;
-}
-
-.load-btn {
-  width: 100%;
-  padding: 0.75rem;
-  font-size: 1rem;
-  border-radius: 10px;
-}
-      </style>
-   </head>
-   <body>
-      <h2>Hyperliquid Funding History</h2>
-      <div id="spinnerOverlay" class="spinner-overlay">
-         <div class="spinner"></div>
-      </div>
-      <div class="controls">
-         <div class="row">
-            <div class="control-group">
-              <label for="dropdown"><strong>Select Token:</strong></label>
-              <div class="token-selector">
-                <div class="dropdown" id="dropdown">
-                  <div class="selected" onclick="toggleDropdown(event)">
-                    <span id="selectedTokenLabel">Select Token</span>
-                    <span class="arrow" id="dropdownArrow">▾</span>
-                  </div>
-                  <div class="dropdown-list" id="dropdownList"></div>
-                </div>
+      .dropdown {
+      width: 100%;
+      }
+      .dropdown-list {
+      left: 0;
+      right: 0;
+      width: auto;
+      min-width: 100%;
+      box-sizing: border-box;
+      }
+      .controls {
+      padding: 1rem;
+      gap: 1rem;
+      }
+      .control-group label {
+      font-size: 0.95rem;
+      }
+      .selected {
+      font-size: 0.95rem;
+      }
+      .control-group {
+      min-width: 100%;
+      max-width: 100%;
+      }
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Hyperliquid Funding History</h2>
+    <div id="spinnerOverlay" class="spinner-overlay">
+      <div class="spinner"></div>
+    </div>
+    <div class="controls">
+      <div class="row">
+        <div class="control-group">
+          <label for="dropdown"><strong>Select Token:</strong></label>
+          <div class="token-selector">
+            <div class="dropdown" id="dropdown">
+              <div class="selected" onclick="toggleDropdown(event)">
+                <span id="selectedTokenLabel">Select Token</span>
+                <span class="arrow" id="dropdownArrow">▾</span>
+              </div>
+              <div class="dropdown-list" id="dropdownList"></div>
+            </div>
+          </div>
+        </div>
+        <div class="control-group">
+          <label><strong>View Mode:</strong></label>
+          <div class="token-selector">
+            <div class="dropdown" id="viewModeDropdown">
+              <div class="selected" onclick="toggleViewModeDropdown(event)">
+                <span id="selectedViewModeLabel">Hourly</span>
+                <span class="arrow" id="viewModeDropdownArrow">▾</span>
+              </div>
+              <div class="dropdown-list" id="viewModeDropdownList">
+                <div class="dropdown-item" onclick="selectViewMode('hourly')">Hourly</div>
+                <div class="dropdown-item" onclick="selectViewMode('annualized')">Annualized</div>
               </div>
             </div>
-            <div class="control-group">
-               <label><strong>View Mode:</strong></label>
-                <div class="token-selector">
-                  <div class="dropdown" id="viewModeDropdown">
-                    <div class="selected" onclick="toggleViewModeDropdown(event)">
-                      <span id="selectedViewModeLabel">Hourly</span>
-                      <span class="arrow" id="viewModeDropdownArrow">▾</span>
-                    </div>
-                    <div class="dropdown-list" id="viewModeDropdownList">
-                      <div class="dropdown-item" onclick="selectViewMode('hourly')">Hourly</div>
-                      <div class="dropdown-item" onclick="selectViewMode('annualized')">Annualized</div>
-                    </div>
-                  </div>
-                </div>
-            </div>
-            <div class="control-group dataset-control">
-              <label><strong>Datasets:</strong></label>
-              <div class="token-selector">
-                <div class="dropdown" id="datasetDropdown">
-                  <div class="selected" onclick="toggleDatasetDropdown(event)">
-                    <span id="datasetDropdownLabel">Select datasets</span>
-                    <span class="arrow" id="datasetDropdownArrow">▾</span>
-                  </div>
-                  <div class="dropdown-list" id="datasetDropdownList">
-                    <!-- items populated dynamically by JS -->
-                  </div>
-                </div>
+          </div>
+        </div>
+        <div class="control-group dataset-control">
+          <label><strong>Datasets:</strong></label>
+          <div class="token-selector">
+            <div class="dropdown" id="datasetDropdown">
+              <div class="selected" onclick="toggleDatasetDropdown(event)">
+                <span id="datasetDropdownLabel">Select datasets</span>
+                <span class="arrow" id="datasetDropdownArrow">▾</span>
+              </div>
+              <div class="dropdown-list" id="datasetDropdownList">
               </div>
             </div>
-         </div>
-      </div>
-      <div class="controls range-selector">
-        <div class="custom-date-row">
-          <input type="datetime-local" id="customStart" />
-          <span class="date-separator">-</span>
-          <input type="datetime-local" id="customEnd" />
+          </div>
         </div>
-        <div class="quick-buttons">
-          <button onclick="applyQuickRange('1d')">Last 24 Hours</button>
-          <button onclick="applyQuickRange('3d')">Last 3 Days</button>
-          <button onclick="applyQuickRange('7d')">Last 7 Days</button>
-          <button onclick="applyQuickRange('30d')">Last 30 Days</button>
-        </div>
-        <button class="load-btn" onclick="loadFundingData('custom')">Load</button>
       </div>
-      <div id="maStatsTable" class="ma-stats-table">
-         <table>
-            <thead>
-               <tr>
-                  <th id="maStatsTable-MA-Range">MA (Range)</th>
-                  <th id="maStatsTable-MA-24h">MA (24h)</th>
-                  <th id="maStatsTable-MA-3D">MA (3D)</th>
-                  <th id="maStatsTable-MA-7D">MA (7D)</th>
-                  <th id="maStatsTable-MA-14D">MA (14D)</th>
-                  <th id="maStatsTable-MA-30D">MA (30D)</th>
-               </tr>
-            </thead>
-            <tbody>
-               <tr id="maValuesRow"></tr>
-            </tbody>
-         </table>
-         <div class="ma-footnote">* MA = Moving Average</div>
+    </div>
+    <div class="controls range-selector">
+      <div class="custom-date-row">
+        <input type="datetime-local" id="customStart" />
+        <span class="date-separator">-</span>
+        <input type="datetime-local" id="customEnd" />
       </div>
-      <canvas id="fundingChart" width="800" height="400"></canvas>
-      <script>
+      <div class="quick-buttons">
+        <button onclick="applyQuickRange('1d')">Last 24 Hours</button>
+        <button onclick="applyQuickRange('3d')">Last 3 Days</button>
+        <button onclick="applyQuickRange('7d')">Last 7 Days</button>
+        <button onclick="applyQuickRange('30d')">Last 30 Days</button>
+      </div>
+      <button class="load-btn" onclick="loadFundingData('custom')">Load</button>
+    </div>
+    <div id="maStatsTable" class="ma-stats-table">
+      <table>
+        <thead>
+          <tr>
+            <th id="maStatsTable-MA-Range">MA (Range)</th>
+            <th id="maStatsTable-MA-24h">MA (24h)</th>
+            <th id="maStatsTable-MA-3D">MA (3D)</th>
+            <th id="maStatsTable-MA-7D">MA (7D)</th>
+            <th id="maStatsTable-MA-14D">MA (14D)</th>
+            <th id="maStatsTable-MA-30D">MA (30D)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr id="maValuesRow"></tr>
+        </tbody>
+      </table>
+      <div class="ma-footnote">* MA = Moving Average</div>
+    </div>
+    <canvas id="fundingChart" width="800" height="400"></canvas>
+    <script>
+      // *** Global State Variables ***
       let allTokens = [];
       let favorites = JSON.parse(localStorage.getItem('favoriteTokens') || '[]');
       let selectedToken = localStorage.getItem('selectedToken') || null;
       let fundingChart = null;
       
-      // ===================
-      // Token Dropdown
-      // ===================
-
+      // =========================
+      // Token Dropdown Handlers
+      // =========================
+      
+      /**
+       * Fetch tokens info from API and store them globally, then render token dropdown.
+       */
       async function fetchAndRenderTokens() {
-        const response = await fetch('https://api.hyperliquid.xyz/info', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ type: 'meta' }),
-        });
-        const meta = await response.json();
-        allTokens = meta.universe.map(t => t.name);
-        renderDropdown();
+        try {
+          const response = await fetch('https://api.hyperliquid.xyz/info', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'meta' }),
+          });
+          const meta = await response.json();
+          allTokens = meta.universe.map(t => t.name);
+          renderDropdown();
+        } catch (error) {
+          console.error('Failed to fetch tokens:', error);
+        }
       }
-
+      
+      /**
+       * Toggle the main token dropdown visibility and setup search input.
+       * @param {Event} event
+       */
       function toggleDropdown(event) {
         event.stopPropagation();
         const list = document.getElementById('dropdownList');
         const arrow = document.getElementById('dropdownArrow');
-
         const isOpen = list.style.display === 'block';
+      
         if (isOpen) {
           list.style.display = 'none';
           arrow.classList.remove('open');
@@ -554,47 +512,56 @@
           closeAllDropdowns();
           list.style.display = 'block';
           arrow.classList.add('open');
-
+      
+          // Create & append search input for filtering tokens
           const input = document.createElement('input');
           input.type = 'text';
           input.id = 'searchInput';
           input.className = 'search-input';
           input.placeholder = 'Search token...';
           input.oninput = filterTokens;
-
+      
           list.innerHTML = '';
           list.appendChild(input);
           filterTokens();
           setTimeout(() => input.focus(), 0);
         }
       }
-
+      
+      /**
+       * Filter tokens in dropdown based on search input and favorites.
+       */
       function filterTokens() {
         const list = document.getElementById('dropdownList');
         const input = document.getElementById('searchInput');
         const query = input.value.toLowerCase();
-
+      
+        // Remove old token items (preserving search input at index 0)
         while (list.children.length > 1) {
           list.removeChild(list.lastChild);
         }
-
+      
+        // Filter favorite tokens and other tokens with current query
         const filteredFavorites = favorites.filter(
           t => allTokens.includes(t) && t.toLowerCase().includes(query)
         );
         const filteredOthers = allTokens
           .filter(t => !favorites.includes(t))
           .filter(t => t.toLowerCase().includes(query));
-
+      
+        // Render favorites section if applicable
         if (filteredFavorites.length > 0) {
           list.appendChild(createLabel('★ Favorites'));
           filteredFavorites.forEach(token => list.appendChild(createDropdownItem(token)));
         }
-
+      
+        // Render all tokens section
         if (filteredOthers.length > 0) {
           list.appendChild(createLabel('All Tokens'));
           filteredOthers.forEach(token => list.appendChild(createDropdownItem(token)));
         }
-
+      
+        // No matches found case
         if (filteredFavorites.length === 0 && filteredOthers.length === 0) {
           const noResults = document.createElement('div');
           noResults.className = 'dropdown-item';
@@ -602,66 +569,94 @@
           list.appendChild(noResults);
         }
       }
-
+      
+      /**
+       * Update the selected token label in the dropdown.
+       */
       function renderDropdown() {
         const label = document.getElementById('selectedTokenLabel');
         if (selectedToken) label.innerText = selectedToken;
       }
-
+      
+      /**
+       * Creates a label element for dropdown sections.
+       * @param {string} text - Text to display as label.
+       * @returns {HTMLElement}
+       */
       function createLabel(text) {
         const label = document.createElement('div');
         label.className = 'section-label';
         label.textContent = text;
         return label;
       }
-
+      
+      /**
+       * Creates a dropdown item for a given token, including favorite star.
+       * @param {string} token
+       * @returns {HTMLElement}
+       */
       function createDropdownItem(token) {
         const item = document.createElement('div');
         item.className = 'dropdown-item' + (token === selectedToken ? ' selected-token' : '');
         item.onclick = () => selectToken(token);
-
+      
         const nameSpan = document.createElement('span');
         nameSpan.textContent = token;
-
+      
         const starSpan = document.createElement('span');
         starSpan.className = 'star';
         starSpan.textContent = favorites.includes(token) ? '★' : '☆';
         starSpan.onclick = (e) => toggleFavorite(e, token);
-
+      
         item.appendChild(nameSpan);
         item.appendChild(starSpan);
         return item;
       }
-
+      
+      /**
+       * Set the selected token and update UI/localStorage.
+       * @param {string} token
+       */
       function selectToken(token) {
         selectedToken = token;
         document.getElementById('selectedTokenLabel').innerText = token;
         localStorage.setItem('selectedToken', token);
-        document.getElementById('dropdownList').style.display = 'none';
-        document.getElementById('dropdownArrow').classList.remove('open');
+        closeAllDropdowns();
         renderDropdown();
         loadFundingData('custom');
       }
-
+      
+      /**
+       * Toggle favorite state of a token.
+       * @param {Event} e
+       * @param {string} token
+       */
       function toggleFavorite(e, token) {
         e.stopPropagation();
         const index = favorites.indexOf(token);
-        if (index >= 0) favorites.splice(index, 1);
-        else favorites.push(token);
+        if (index >= 0) {
+          favorites.splice(index, 1);
+        } else {
+          favorites.push(token);
+        }
         localStorage.setItem('favoriteTokens', JSON.stringify(favorites));
         filterTokens();
       }
-
-      // ===================
-      // View Mode Dropdown
-      // ===================
-
+      
+      // ===============================
+      // View Mode Dropdown Handlers
+      // ===============================
+      
+      /**
+       * Toggle view mode dropdown visibility.
+       * @param {Event} event
+       */
       function toggleViewModeDropdown(event) {
         event.stopPropagation();
         const list = document.getElementById('viewModeDropdownList');
         const arrow = document.getElementById('viewModeDropdownArrow');
         const isOpen = list.style.display === 'block';
-
+      
         if (isOpen) {
           list.style.display = 'none';
           arrow.classList.remove('open');
@@ -671,26 +666,33 @@
           arrow.classList.add('open');
         }
       }
-
+      
+      /**
+       * Select a view mode (hourly or annualized).
+       * @param {string} mode
+       */
       function selectViewMode(mode) {
         const label = document.getElementById('selectedViewModeLabel');
         label.innerText = mode.charAt(0).toUpperCase() + mode.slice(1);
         localStorage.setItem('viewMode', mode);
-        document.getElementById('viewModeDropdownList').style.display = 'none';
-        document.getElementById('viewModeDropdownArrow').classList.remove('open');
+        closeAllDropdowns();
         loadFundingData('custom');
       }
-
-      // ===================
-      // Dataset Dropdown + Checkbox Sync
-      // ===================
-
+      
+      // ==================================
+      // Dataset Dropdown and Checkbox Sync
+      // ==================================
+      
+      /**
+       * Toggle dataset dropdown visibility.
+       * @param {Event} event
+       */
       function toggleDatasetDropdown(event) {
         event.stopPropagation();
         const list = document.getElementById('datasetDropdownList');
         const arrow = document.getElementById('datasetDropdownArrow');
         const isOpen = list.style.display === 'block';
-
+      
         if (isOpen) {
           list.style.display = 'none';
           arrow.classList.remove('open');
@@ -700,41 +702,50 @@
           arrow.classList.add('open');
         }
       }
-
+      
+      /**
+       * Build dataset dropdown with checkboxes and persistent visibility state.
+       */
       function buildDatasetDropdown() {
         const list = document.getElementById('datasetDropdownList');
         list.innerHTML = '';
-
+      
+        // Dataset labels used in chart and UI
         const datasets = [
           'MA (Range)', 'MA (24h)', 'MA (3D)', 'MA (7D)', 'MA (14D)', 'MA (30D)', 'Funding Rate'
         ];
-
+      
+        // Load visibility preferences or default all true
         const savedVisibility = JSON.parse(localStorage.getItem('datasetVisibility') || '{}');
-
+      
         datasets.forEach(label => {
           const labelWrapper = document.createElement('label');
           labelWrapper.className = 'dropdown-item dataset-option';
-
+      
           const checkbox = document.createElement('input');
           checkbox.type = 'checkbox';
           checkbox.className = 'dataset-checkbox';
+          // Default to visible if not explicitly hidden
           checkbox.checked = savedVisibility[label] !== false;
           checkbox.onchange = () => {
             toggleDatasetVisibility(label, checkbox.checked);
             updateDatasetLabel();
           };
-
+      
           const text = document.createElement('span');
           text.textContent = label;
-
+      
           labelWrapper.appendChild(checkbox);
           labelWrapper.appendChild(text);
           list.appendChild(labelWrapper);
         });
-
+      
         updateDatasetLabel();
       }
-
+      
+      /**
+       * Update the visible dataset label to reflect the count of selected datasets.
+       */
       function updateDatasetLabel() {
         const checkboxes = document.querySelectorAll('.dataset-checkbox');
         const checked = Array.from(checkboxes).filter(c => c.checked);
@@ -742,22 +753,32 @@
         const count = checked.length;
         label.innerText = `${count} dataset${count !== 1 ? 's' : ''} selected`;
       }
-
+      
+      /**
+       * Toggle visibility of a dataset on the Chart.js chart and update localStorage.
+       * @param {string} label
+       * @param {boolean} visible
+       */
       function toggleDatasetVisibility(label, visible) {
         if (!fundingChart) return;
+      
         fundingChart.data.datasets.forEach((dataset, i) => {
+          // Normalize label to match dataset
           const datasetLabel = dataset.label.startsWith('Funding Rate') ? 'Funding Rate' : dataset.label;
           if (datasetLabel === label) {
             fundingChart.getDatasetMeta(i).hidden = !visible;
           }
         });
         fundingChart.update();
-
+      
         const currentVisibility = JSON.parse(localStorage.getItem('datasetVisibility') || '{}');
         currentVisibility[label] = visible;
         localStorage.setItem('datasetVisibility', JSON.stringify(currentVisibility));
       }
-
+      
+      /**
+       * Sync dataset checkboxes to match chart dataset visibility.
+       */
       function syncDatasetCheckboxes() {
         const checkboxes = document.querySelectorAll('.dataset-checkbox');
         checkboxes.forEach(checkbox => {
@@ -773,34 +794,48 @@
         });
         updateDatasetLabel();
       }
-
-      // ===================
-      // Global Dropdown Close Handler
-      // ===================
-
+      
+      // =====================
+      // Global dropdown close
+      // =====================
+      
+      /**
+       * Close all dropdown menus.
+       */
       function closeAllDropdowns() {
-        document.getElementById('dropdownList').style.display = 'none';
-        document.getElementById('dropdownArrow').classList.remove('open');
-        document.getElementById('viewModeDropdownList').style.display = 'none';
-        document.getElementById('viewModeDropdownArrow').classList.remove('open');
-        document.getElementById('datasetDropdownList').style.display = 'none';
-        document.getElementById('datasetDropdownArrow').classList.remove('open');
+        ['dropdownList', 'viewModeDropdownList', 'datasetDropdownList'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.style.display = 'none';
+        });
+        ['dropdownArrow', 'viewModeDropdownArrow', 'datasetDropdownArrow'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.classList.remove('open');
+        });
       }
-
-      document.addEventListener('click', function (event) {
+      
+      // Close dropdowns when clicking outside
+      document.addEventListener('click', function(event) {
         if (!event.target.closest('.dropdown')) {
           closeAllDropdowns();
         }
       });
-
-     // Funding data loading and chart rendering
+      
+      // ======================
+      // Funding Data Processing
+      // ======================
+      
+      /**
+       * Load funding data for the selected token and range, render chart and update statistics.
+       * @param {string} range - 'custom' or preset like '1d', '3d', '7d', '30d'
+       */
       async function loadFundingData(range = '7d') {
         const token = localStorage.getItem('selectedToken') || 'BTC';
         const viewMode = localStorage.getItem('viewMode') || 'hourly';
         const precision = (viewMode === 'annualized') ? 2 : 4;
-
+      
         let startTime, endTime = Date.now();
-
+      
+        // Handling custom date range input
         if (range === 'custom') {
           const startStr = document.getElementById('customStart').value;
           const endStr = document.getElementById('customEnd').value;
@@ -815,21 +850,26 @@
             return;
           }
         } else {
+          // If range is preset (e.g. '1d'), set custom inputs and reload
           applyQuickRange(range);
           return;
         }
-
+      
+        // Buffer time for fetching more data to calculate moving averages smoothly
         const bufferMs = 30 * 24 * 60 * 60 * 1000;
         const fetchStartTime = startTime - bufferMs;
-        const maxChunkMs = 20 * 24 * 60 * 60 * 1000;
+        const maxChunkMs = 20 * 24 * 60 * 60 * 1000; // max chunk of 20 days to avoid huge fetches
+      
+        // Split fetch range into manageable chunks to avoid overload
         const chunks = [];
         for (let chunkStart = fetchStartTime; chunkStart < endTime; chunkStart += maxChunkMs) {
           chunks.push([chunkStart, Math.min(chunkStart + maxChunkMs, endTime)]);
         }
-
+      
         toggleSpinner(true);
-
+      
         try {
+          // Fetch all chunks asynchronously
           const fetches = chunks.map(([start, end]) =>
             fetch('https://api.hyperliquid.xyz/info', {
               method: 'POST',
@@ -842,41 +882,47 @@
               }),
             }).then(res => res.json())
           );
-
+      
           const chunkDataArrays = await Promise.all(fetches);
           const combinedData = chunkDataArrays.flat().sort((a, b) => a.time - b.time);
-
+      
+          // Filter data for requested visible range
           const visibleData = combinedData.filter(d => d.time >= startTime && d.time <= endTime);
+      
+          // Prepare labels and fundingValues for chart
           const labels = visibleData.map(item => new Date(item.time).toLocaleString());
           let fundingValues = visibleData.map(item => parseFloat(item.fundingRate) * 100);
-
+      
+          // Convert rates to annualized if selected
           if (viewMode === 'annualized') {
             fundingValues = fundingValues.map(val => val * 24 * 365);
           }
-
+      
+          // Compute cumulative moving average over visible data range (MA Range)
           const cumulativeMovingAvg = fundingValues.reduce((acc, val, idx) => {
             const newSum = (acc.sum || 0) + val;
             acc.movingAvg.push(newSum / (idx + 1));
             acc.sum = newSum;
             return acc;
           }, { movingAvg: [], sum: 0 }).movingAvg;
-
+      
+          // Prepare full arrays for moving averages over full fetched data (needed for calculation accuracy)
           const fullFundingValues = combinedData.map(item =>
-            viewMode === 'annualized'
-              ? parseFloat(item.fundingRate) * 100 * 24 * 365
-              : parseFloat(item.fundingRate) * 100
+            (viewMode === 'annualized' ? parseFloat(item.fundingRate) * 100 * 24 * 365 : parseFloat(item.fundingRate) * 100)
           );
           const fullTimestamps = combinedData.map(item => item.time);
-
+      
+          // Calculate moving averages for different windows
           const ma24h = calculateMovingAverage(fullTimestamps, fullFundingValues, 24 * 60 * 60 * 1000);
           const ma3d = calculateMovingAverage(fullTimestamps, fullFundingValues, 3 * 24 * 60 * 60 * 1000);
           const ma7d = calculateMovingAverage(fullTimestamps, fullFundingValues, 7 * 24 * 60 * 60 * 1000);
           const ma14d = calculateMovingAverage(fullTimestamps, fullFundingValues, 14 * 24 * 60 * 60 * 1000);
           const ma30d = calculateMovingAverage(fullTimestamps, fullFundingValues, 30 * 24 * 60 * 60 * 1000);
-
+      
+          // Find last index corresponding to visible endTime for correct MA values
           const lastVisibleIndex = fullTimestamps.findLastIndex(t => t <= endTime);
-          
-          // Final MAs to show in stats table
+      
+          // Prepare final MAs for stats table (show last values)
           const finalMAs = {
             'MA (Range)': cumulativeMovingAvg[cumulativeMovingAvg.length - 1],
             'MA (24h)': ma24h[lastVisibleIndex],
@@ -886,25 +932,30 @@
             'MA (30D)': ma30d[lastVisibleIndex],
           };
       
-          // Update stats table row with formatted MAs
+          // Update stats table showing formatted MA values
           const maRow = document.getElementById('maValuesRow');
           maRow.innerHTML = Object.values(finalMAs)
             .map(val => `<td>${val?.toFixed(precision)}%</td>`)
             .join('');
-
-          const filteredMA24h = filterVisibleMovingAverage(fullTimestamps, ma24h, visibleData.map(d => d.time));
-          const filteredMA3d  = filterVisibleMovingAverage(fullTimestamps, ma3d, visibleData.map(d => d.time));
-          const filteredMA7d  = filterVisibleMovingAverage(fullTimestamps, ma7d, visibleData.map(d => d.time));
-          const filteredMA14d  = filterVisibleMovingAverage(fullTimestamps, ma14d, visibleData.map(d => d.time));
-          const filteredMA30d = filterVisibleMovingAverage(fullTimestamps, ma30d, visibleData.map(d => d.time));
-
+      
+          // Filter MAs for visible timestamps (Chart.js expects data array same size as labels)
+          const visibleTimes = visibleData.map(d => d.time);
+          const filteredMA24h = filterVisibleMovingAverage(fullTimestamps, ma24h, visibleTimes);
+          const filteredMA3d = filterVisibleMovingAverage(fullTimestamps, ma3d, visibleTimes);
+          const filteredMA7d = filterVisibleMovingAverage(fullTimestamps, ma7d, visibleTimes);
+          const filteredMA14d = filterVisibleMovingAverage(fullTimestamps, ma14d, visibleTimes);
+          const filteredMA30d = filterVisibleMovingAverage(fullTimestamps, ma30d, visibleTimes);
+      
+          // Get colors/styles from CSS variables
           const style = getComputedStyle(document.body);
           const lineColor = style.getPropertyValue('--fundingrate-line').trim();
           const textColor = style.getPropertyValue('--chart-text').trim();
           const gridColor = style.getPropertyValue('--grid-color').trim();
-
+      
+          // Load dataset visibility settings (default visible)
           const savedVisibility = JSON.parse(localStorage.getItem('datasetVisibility') || '{}');
-
+      
+          // Construct chart datasets with styling and visibility
           const datasets = [
             { label: 'MA (Range)', data: cumulativeMovingAvg, borderColor: '#FF6B6B', borderWidth: 2, hidden: savedVisibility['MA (Range)'] === false },
             { label: 'MA (24h)', data: filteredMA24h, borderColor: '#F4A261', borderWidth: 2, hidden: savedVisibility['MA (24h)'] === false },
@@ -918,10 +969,14 @@
             tension: 0.2,
             pointRadius: 0,
           }, d));
-
+      
+          // Prepare canvas context
           const ctx = document.getElementById('fundingChart').getContext('2d');
+      
+          // Destroy previous chart instance if any
           if (fundingChart) fundingChart.destroy();
-
+      
+          // Register plugin for hover vertical line
           Chart.register({
             id: 'hoverLine',
             afterDraw(chart) {
@@ -930,19 +985,20 @@
                 const x = chart.tooltip._active[0].element.x;
                 const topY = chart.scales.y.top;
                 const bottomY = chart.scales.y.bottom;
-
+      
                 ctx.save();
                 ctx.beginPath();
                 ctx.moveTo(x, topY);
                 ctx.lineTo(x, bottomY);
                 ctx.lineWidth = 1;
-                ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)'; // You can adapt this for dark mode
+                ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)'; // adapt for theme if needed
                 ctx.stroke();
                 ctx.restore();
               }
             }
           });
-
+      
+          // Initialize new Chart.js line chart
           fundingChart = new Chart(ctx, {
             type: 'line',
             data: { labels, datasets },
@@ -987,11 +1043,14 @@
                 },
                 legend: {
                   labels: { color: textColor },
+                  // Allow toggling dataset visibility from legend click
                   onClick: (e, item, legend) => {
                     const chart = legend.chart;
                     const meta = chart.getDatasetMeta(item.datasetIndex);
                     meta.hidden = meta.hidden === null ? !chart.data.datasets[item.datasetIndex].hidden : null;
                     chart.update();
+      
+                    // Save updated visibility to localStorage
                     const vis = {};
                     chart.data.datasets.forEach((ds, i) => {
                       const labelKey = ds.label.startsWith('Funding Rate') ? 'Funding Rate' : ds.label;
@@ -1001,7 +1060,7 @@
                     syncDatasetCheckboxes();
                   }
                 },
-                hoverLine: {} 
+                hoverLine: {}
               },
               scales: {
                 x: {
@@ -1018,6 +1077,7 @@
               }
             }
           });
+      
         } catch (err) {
           alert('Error loading funding data');
           console.error(err);
@@ -1025,14 +1085,22 @@
           toggleSpinner(false);
         }
       }
-
-      // Moving average calculation
+      
+      /**
+       * Calculate moving average over a time window.
+       * Uses a sliding window approach for efficiency.
+       * @param {number[]} timeSeries - ordered timestamps array
+       * @param {number[]} values - values corresponding to timestamps
+       * @param {number} windowMs - size of window in milliseconds
+       * @returns {(number|null)[]} - moving average array with null when insufficient data
+       */
       function calculateMovingAverage(timeSeries, values, windowMs) {
         const result = [];
         let windowSum = 0, windowCount = 0, windowStartIdx = 0;
-
+      
         for (let i = 0; i < timeSeries.length; i++) {
           const currentTime = timeSeries[i];
+          // Slide window start forward while outside window
           while (timeSeries[windowStartIdx] < currentTime - windowMs) {
             windowSum -= values[windowStartIdx];
             windowCount--;
@@ -1044,61 +1112,83 @@
         }
         return result;
       }
-
-      // Filter MA arrays to visible timestamps
+      
+      /**
+       * Filter moving average arrays to only values visible in current data range.
+       * Replaces values outside visible times with null, then removes nulls, matching visible dataset length.
+       * @param {number[]} fullTimes - full timestamps of complete dataset
+       * @param {(number|null)[]} fullMA - moving average values matching fullTimes
+       * @param {number[]} visibleTimes - timestamps currently visible (subset)
+       * @returns {number[]} - filtered moving average values for visible timestamps
+       */
       function filterVisibleMovingAverage(fullTimes, fullMA, visibleTimes) {
-        return fullTimes.map((t, i) => visibleTimes.includes(t) ? fullMA[i] : null).filter(val => val !== null);
+        return fullTimes
+          .map((t, i) => (visibleTimes.includes(t) ? fullMA[i] : null))
+          .filter(val => val !== null);
       }
-
-      // Spinner toggle
+      
+      /**
+       * Show or hide the loading spinner overlay.
+       * @param {boolean} isVisible
+       */
       function toggleSpinner(isVisible) {
         document.getElementById('spinnerOverlay').style.display = isVisible ? 'flex' : 'none';
       }
-
-      // Apply quick date range
+      
+      /**
+       * Apply a predefined quick date range and update the date input fields.
+       * @param {string} rangeKey - e.g. '1d', '3d', '7d', '30d'
+       */
       function applyQuickRange(rangeKey) {
         const now = new Date();
         const start = new Date(now);
         const daysMap = { '1d': 1, '3d': 3, '7d': 7, '30d': 30 };
         start.setDate(now.getDate() - (daysMap[rangeKey] || 7));
-
+      
+        // Helper to format date to local ISO string without seconds for datetime-local input
         const toStr = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      
         document.getElementById('customStart').value = toStr(start);
         document.getElementById('customEnd').value = toStr(now);
-
+      
         localStorage.setItem('customStart', toStr(start));
         localStorage.setItem('customEnd', toStr(now));
-
+      
         loadFundingData('custom');
       }
-
-      // ===================
-      // Window Onload
-      // ===================
-
+      
+      // =======================
+      // Initialization on page load
+      // =======================
+      
       window.onload = async () => {
+        // Set selected token from storage or default
         selectedToken = localStorage.getItem('selectedToken') || 'BTC';
         document.getElementById('selectedTokenLabel').innerText = selectedToken;
         localStorage.setItem('selectedToken', selectedToken);
-
-        
+      
+        // Load saved custom date range or apply default quick range 1d
         const savedStart = localStorage.getItem('customStart');
         const savedEnd = localStorage.getItem('customEnd');
         if (savedStart && savedEnd) {
           document.getElementById('customStart').value = savedStart;
           document.getElementById('customEnd').value = savedEnd;
         } else {
-          applyQuickRange('1d'); 
+          applyQuickRange('1d');
         }
-
+      
+        // Fetch tokens and build dropdowns
         await fetchAndRenderTokens();
-
+      
+        // Set saved view mode UI
         const savedViewMode = localStorage.getItem('viewMode') || 'hourly';
         document.getElementById('selectedViewModeLabel').innerText = savedViewMode.charAt(0).toUpperCase() + savedViewMode.slice(1);
-
+      
         buildDatasetDropdown();
+      
+        // Initial load of funding data with custom range
         loadFundingData('custom');
-      };
-      </script>
-   </body>
+      }
+    </script>
+  </body>
 </html>
