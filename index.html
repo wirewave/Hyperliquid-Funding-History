@@ -11,29 +11,14 @@
         --card-color: #ffffff;
         --input-bg: #ffffff;
         --input-border: #000000;
-        --button-bg: #008b20;
-        --button-hover: #005815;
-        --chart-line: #3f8d00;
+        --button-bg: #194d44;
+        --button-hover: #0f2e29;
+        --fundingrate-line: black;
         --bg-overlay: #e1e1e1bf;
         --box-shadow: rgba(0, 0, 0, 0.6);
         --chart-text: #000000;
         --grid-color: rgba(0, 0, 0, 0.1);
         --highlight-bg: #e0f2fe;
-      }
-
-      body.dark {
-        --bg-color: #000000;
-        --text-color: #ffffff;
-        --card-color: #000000;
-        --input-bg: #000000;
-        --input-border: #ffffff;
-        --button-bg: #008b20;
-        --button-hover: #005815;
-        --chart-line: #3f8d00;
-        --bg-overlay: #1e1e1ebf;
-        --box-shadow: rgba(255, 255, 255, 0.6);
-        --chart-text: #ffffff;
-        --grid-color: rgba(255, 255, 255, 0.2);
       }
 
       body {
@@ -92,7 +77,6 @@
         max-width: 100%;
       }
 
-      /* Token dropdown */
       .token-selector {
         position: relative;
         width: 100%;
@@ -327,11 +311,12 @@
         font-weight: 600;
       }
 
-      #maStatsTable-MA-Range { border-color: red; }
-      #maStatsTable-MA-24h { border-color: orange; }
-      #maStatsTable-MA-3D { border-color: blue; }
-      #maStatsTable-MA-7D { border-color: pink; }
-      #maStatsTable-MA-30D { border-color: purple; }
+      #maStatsTable-MA-Range { border-color:#FF6B6B; }
+      #maStatsTable-MA-24h { border-color:#F4A261; }
+      #maStatsTable-MA-3D { border-color: #E9C46A; }
+      #maStatsTable-MA-7D { border-color: #2A9D8F; }
+      #maStatsTable-MA-14D { border-color: #3A86FF;}
+      #maStatsTable-MA-30D { border-color: #8338EC; }
 
       .ma-footnote {
         font-size: 0.75rem;
@@ -376,10 +361,83 @@
           max-width: 100%;
         }
       }
+      .range-selector {
+  background: var(--card-color);
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px var(--box-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.range-title {
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.quick-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .quick-buttons {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.quick-buttons button {
+  padding: 0.5rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  background-color: #e5e7eb;
+  color: #111827;
+  border: 1px solid #d1d5db;
+  box-shadow: none;
+}
+
+.quick-buttons button:hover {
+  background-color: #d1d5db;
+}
+
+.custom-date-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.custom-date-row input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--text-color);
+  box-shadow: 0 2px 4px var(--box-shadow);
+  font-size: 1rem;
+  justify-content: center;
+}
+
+.date-separator {
+  font-weight: bold;
+  font-size: 1.25rem;
+  margin: 0 0.5rem;
+}
+
+.load-btn {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border-radius: 10px;
+}
       </style>
    </head>
    <body>
-      <div class="theme-toggle" id="themeToggle" onclick="toggleTheme()">🌙</div>
       <h2>Hyperliquid Funding History</h2>
       <div id="spinnerOverlay" class="spinner-overlay">
          <div class="spinner"></div>
@@ -429,27 +487,19 @@
             </div>
          </div>
       </div>
-      <div class="controls">
-         <div class="row vertical-stack">
-            <div class="quick-range">
-               <label><strong>Quick Ranges:</strong></label>
-               <div class="quick-buttons">
-                  <button onclick="applyQuickRange('1d')">Last 24 Hours</button>
-                  <button onclick="applyQuickRange('3d')">Last 3 Days</button>
-                  <button onclick="applyQuickRange('7d')">Last 7 Days</button>
-                  <button onclick="applyQuickRange('30d')">Last 30 Days</button>
-               </div>
-            </div>
-            <div class="custom-range">
-               <label><strong>Custom Range:</strong></label>
-               <div class="custom-range-inputs">
-                  <input type="datetime-local" id="customStart" />
-                  <span>-</span>
-                  <input type="datetime-local" id="customEnd" />
-               </div>
-               <button onclick="loadFundingData('custom')">Load</button>
-            </div>
-         </div>
+      <div class="controls range-selector">
+        <div class="custom-date-row">
+          <input type="datetime-local" id="customStart" />
+          <span class="date-separator">-</span>
+          <input type="datetime-local" id="customEnd" />
+        </div>
+        <div class="quick-buttons">
+          <button onclick="applyQuickRange('1d')">Last 24 Hours</button>
+          <button onclick="applyQuickRange('3d')">Last 3 Days</button>
+          <button onclick="applyQuickRange('7d')">Last 7 Days</button>
+          <button onclick="applyQuickRange('30d')">Last 30 Days</button>
+        </div>
+        <button class="load-btn" onclick="loadFundingData('custom')">Load</button>
       </div>
       <div id="maStatsTable" class="ma-stats-table">
          <table>
@@ -459,6 +509,7 @@
                   <th id="maStatsTable-MA-24h">MA (24h)</th>
                   <th id="maStatsTable-MA-3D">MA (3D)</th>
                   <th id="maStatsTable-MA-7D">MA (7D)</th>
+                  <th id="maStatsTable-MA-14D">MA (14D)</th>
                   <th id="maStatsTable-MA-30D">MA (30D)</th>
                </tr>
             </thead>
@@ -474,7 +525,7 @@
       let favorites = JSON.parse(localStorage.getItem('favoriteTokens') || '[]');
       let selectedToken = localStorage.getItem('selectedToken') || null;
       let fundingChart = null;
-
+      
       // ===================
       // Token Dropdown
       // ===================
@@ -655,7 +706,7 @@
         list.innerHTML = '';
 
         const datasets = [
-          'Funding Rate', 'MA (Range)', 'MA (24h)', 'MA (3D)', 'MA (7D)', 'MA (30D)'
+          'MA (Range)', 'MA (24h)', 'MA (3D)', 'MA (7D)', 'MA (14D)', 'MA (30D)', 'Funding Rate'
         ];
 
         const savedVisibility = JSON.parse(localStorage.getItem('datasetVisibility') || '{}');
@@ -820,29 +871,48 @@
           const ma24h = calculateMovingAverage(fullTimestamps, fullFundingValues, 24 * 60 * 60 * 1000);
           const ma3d = calculateMovingAverage(fullTimestamps, fullFundingValues, 3 * 24 * 60 * 60 * 1000);
           const ma7d = calculateMovingAverage(fullTimestamps, fullFundingValues, 7 * 24 * 60 * 60 * 1000);
+          const ma14d = calculateMovingAverage(fullTimestamps, fullFundingValues, 14 * 24 * 60 * 60 * 1000);
           const ma30d = calculateMovingAverage(fullTimestamps, fullFundingValues, 30 * 24 * 60 * 60 * 1000);
 
           const lastVisibleIndex = fullTimestamps.findLastIndex(t => t <= endTime);
+          
+          // Final MAs to show in stats table
+          const finalMAs = {
+            'MA (Range)': cumulativeMovingAvg[cumulativeMovingAvg.length - 1],
+            'MA (24h)': ma24h[lastVisibleIndex],
+            'MA (3D)': ma3d[lastVisibleIndex],
+            'MA (7D)': ma7d[lastVisibleIndex],
+            'MA (14D)': ma14d[lastVisibleIndex],
+            'MA (30D)': ma30d[lastVisibleIndex],
+          };
+      
+          // Update stats table row with formatted MAs
+          const maRow = document.getElementById('maValuesRow');
+          maRow.innerHTML = Object.values(finalMAs)
+            .map(val => `<td>${val?.toFixed(precision)}%</td>`)
+            .join('');
 
           const filteredMA24h = filterVisibleMovingAverage(fullTimestamps, ma24h, visibleData.map(d => d.time));
           const filteredMA3d  = filterVisibleMovingAverage(fullTimestamps, ma3d, visibleData.map(d => d.time));
           const filteredMA7d  = filterVisibleMovingAverage(fullTimestamps, ma7d, visibleData.map(d => d.time));
+          const filteredMA14d  = filterVisibleMovingAverage(fullTimestamps, ma14d, visibleData.map(d => d.time));
           const filteredMA30d = filterVisibleMovingAverage(fullTimestamps, ma30d, visibleData.map(d => d.time));
 
           const style = getComputedStyle(document.body);
-          const lineColor = style.getPropertyValue('--chart-line').trim();
+          const lineColor = style.getPropertyValue('--fundingrate-line').trim();
           const textColor = style.getPropertyValue('--chart-text').trim();
           const gridColor = style.getPropertyValue('--grid-color').trim();
 
           const savedVisibility = JSON.parse(localStorage.getItem('datasetVisibility') || '{}');
 
           const datasets = [
-            { label: 'MA (Range)', data: cumulativeMovingAvg, borderColor: 'red', borderDash: [4, 2], hidden: savedVisibility['MA (Range)'] === false },
-            { label: 'MA (24h)', data: filteredMA24h, borderColor: 'orange', borderDash: [2, 2], hidden: savedVisibility['MA (24h)'] === false },
-            { label: 'MA (3D)', data: filteredMA3d, borderColor: 'blue', borderDash: [2, 2], hidden: savedVisibility['MA (3D)'] === false },
-            { label: 'MA (7D)', data: filteredMA7d, borderColor: 'pink', borderDash: [2, 2], hidden: savedVisibility['MA (7D)'] === false },
-            { label: 'MA (30D)', data: filteredMA30d, borderColor: 'purple', borderDash: [2, 2], hidden: savedVisibility['MA (30D)'] === false },
-            { label: `Funding Rate (${token})`, data: fundingValues, borderColor: lineColor, fill: false, hidden: savedVisibility['Funding Rate'] === false },
+            { label: 'MA (Range)', data: cumulativeMovingAvg, borderColor: '#FF6B6B', borderWidth: 2, hidden: savedVisibility['MA (Range)'] === false },
+            { label: 'MA (24h)', data: filteredMA24h, borderColor: '#F4A261', borderWidth: 2, hidden: savedVisibility['MA (24h)'] === false },
+            { label: 'MA (3D)', data: filteredMA3d, borderColor: '#E9C46A', borderWidth: 2, hidden: savedVisibility['MA (3D)'] === false },
+            { label: 'MA (7D)', data: filteredMA7d, borderColor: '#2A9D8F', borderWidth: 2, hidden: savedVisibility['MA (7D)'] === false },
+            { label: 'MA (14D)', data: filteredMA14d, borderColor: '#3A86FF', borderWidth: 2, hidden: savedVisibility['MA (14D)'] === false },
+            { label: 'MA (30D)', data: filteredMA30d, borderColor: '#8338EC', borderWidth: 2, hidden: savedVisibility['MA (30D)'] === false },
+            { label: 'Funding Rate', data: fundingValues, borderColor: lineColor, borderWidth: 2, fill: false, hidden: savedVisibility['Funding Rate'] === false },
           ].map(d => Object.assign({
             fill: false,
             tension: 0.2,
@@ -852,13 +922,65 @@
           const ctx = document.getElementById('fundingChart').getContext('2d');
           if (fundingChart) fundingChart.destroy();
 
+          Chart.register({
+            id: 'hoverLine',
+            afterDraw(chart) {
+              if (chart.tooltip._active && chart.tooltip._active.length) {
+                const ctx = chart.ctx;
+                const x = chart.tooltip._active[0].element.x;
+                const topY = chart.scales.y.top;
+                const bottomY = chart.scales.y.bottom;
+
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(x, topY);
+                ctx.lineTo(x, bottomY);
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)'; // You can adapt this for dark mode
+                ctx.stroke();
+                ctx.restore();
+              }
+            }
+          });
+
           fundingChart = new Chart(ctx, {
             type: 'line',
             data: { labels, datasets },
             options: {
               responsive: true,
+              animation: {
+                duration: 800,
+                easing: 'easeOutQuart'
+              },
+              transitions: {
+                active: {
+                  animation: {
+                    duration: 500,
+                    easing: 'easeOutSine',
+                    delay: 100
+                  }
+                },
+                show: {
+                  animations: {
+                    x: { duration: 600 },
+                    y: { duration: 600 }
+                  }
+                },
+                hide: {
+                  animations: {
+                    x: { duration: 300 },
+                    y: { duration: 300 }
+                  }
+                }
+              },
+              interaction: {
+                mode: 'index',
+                intersect: false
+              },
               plugins: {
                 tooltip: {
+                  mode: 'index',
+                  intersect: false,
                   callbacks: {
                     label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y?.toFixed(precision)}%`,
                   }
@@ -878,12 +1000,19 @@
                     localStorage.setItem('datasetVisibility', JSON.stringify(vis));
                     syncDatasetCheckboxes();
                   }
-                }
+                },
+                hoverLine: {} 
               },
               scales: {
-                x: { ticks: { color: textColor }, grid: { color: gridColor } },
+                x: {
+                  ticks: { color: textColor },
+                  grid: { color: gridColor }
+                },
                 y: {
-                  ticks: { callback: v => `${v.toFixed(precision)}%`, color: textColor },
+                  ticks: {
+                    callback: v => `${v.toFixed(precision)}%`,
+                    color: textColor
+                  },
                   grid: { color: gridColor }
                 }
               }
@@ -948,18 +1077,21 @@
       // ===================
 
       window.onload = async () => {
-        const savedToken = localStorage.getItem('selectedToken');
-        if (savedToken) {
-          selectedToken = savedToken;
-          document.getElementById('selectedTokenLabel').innerText = savedToken;
+        selectedToken = localStorage.getItem('selectedToken') || 'BTC';
+        document.getElementById('selectedTokenLabel').innerText = selectedToken;
+        localStorage.setItem('selectedToken', selectedToken);
+
+        
+        const savedStart = localStorage.getItem('customStart');
+        const savedEnd = localStorage.getItem('customEnd');
+        if (savedStart && savedEnd) {
+          document.getElementById('customStart').value = savedStart;
+          document.getElementById('customEnd').value = savedEnd;
+        } else {
+          applyQuickRange('1d'); 
         }
 
         await fetchAndRenderTokens();
-
-        if (localStorage.getItem('theme') === 'dark') {
-          document.body.classList.add('dark');
-          document.getElementById('themeToggle').textContent = '☀️';
-        }
 
         const savedViewMode = localStorage.getItem('viewMode') || 'hourly';
         document.getElementById('selectedViewModeLabel').innerText = savedViewMode.charAt(0).toUpperCase() + savedViewMode.slice(1);
