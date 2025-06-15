@@ -13,12 +13,36 @@
       --input-border: #000000;
       --button-bg: #194d44;
       --button-hover: #0f2e29;
+      --quickbutton-bg: rgb(229, 231, 235);
+      --quickbutton-hover: rgb(209, 213, 219);
       --fundingrate-line: black;
       --bg-overlay: #e1e1e1bf;
       --box-shadow: rgba(0, 0, 0, 0.6);
       --chart-text: #000000;
       --grid-color: rgba(0, 0, 0, 0.1);
-      --highlight-bg: #e0f2fe;
+      --highlight-bg: #194d4440;
+      --dropdown-hover: rgb(243, 244, 246);
+      --spinner-border: rgb(243, 243, 243);
+      --text-color-section: #6b7280;
+      }
+      body.dark {
+      --bg-color: #000000;
+      --text-color: #ffffff;
+      --card-color: #000000;
+      --input-bg: #000000;
+      --input-border: #ffffff;
+      --button-bg: #194d44;
+      --button-hover: #2a8274;
+      --quickbutton-bg: rgb(59, 63, 69);
+      --quickbutton-hover: rgb(79, 81, 85);
+      --fundingrate-line: white;
+      --bg-overlay: #1e1e1ebf;
+      --box-shadow: rgba(255, 255, 255, 0.6);
+      --chart-text: #ffffff;
+      --grid-color: rgba(255, 255, 255, 0.2);
+      --dropdown-hover: rgb(43, 44, 46);
+      --spinner-border: rgb(243, 243, 243);
+      --text-color-section: rgb(187, 194, 208);
       }
       body {
       font-family: Arial, sans-serif;
@@ -100,7 +124,7 @@
       transition: background 0.2s ease;
       }
       .selected:hover {
-      background: #f3f4f6;
+      background: var(--dropdown-hover);
       }
       .arrow {
       transition: transform 0.3s ease;
@@ -120,7 +144,6 @@
       max-height: 320px;
       overflow-y: auto;
       z-index: 20;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
       box-sizing: border-box;
       }
       /* Search input inside dropdown */
@@ -146,7 +169,11 @@
       cursor: pointer;
       }
       .dropdown-item:hover {
-      background: #f3f4f6;
+      background: var(--dropdown-hover);
+      }
+      .dropdown-item:focus {
+        outline: none;
+        background-color: var(--dropdown-hover);
       }
       .dropdown-item.selected-token {
       background-color: var(--highlight-bg);
@@ -167,7 +194,7 @@
       .section-label {
       font-size: 0.85rem;
       font-weight: 500;
-      color: #6b7280;
+      color: var(--text-color-section);
       padding: 0.5rem 1rem 0.25rem;
       background-color: var(--card-color);
       }
@@ -180,7 +207,7 @@
       cursor: pointer;
       }
       .dataset-option:hover {
-      background: #f3f4f6;
+      background: var(--dropdown-hover);
       }
       .dataset-option span {
       flex-grow: 1;
@@ -224,7 +251,7 @@
       display: none;
       }
       .spinner {
-      border: 8px solid #f3f3f3;
+      border: 8px solid var(--spinner-border);
       border-top: 8px solid var(--button-bg);
       border-radius: 50%;
       width: 60px;
@@ -241,19 +268,19 @@
       grid-template-columns: repeat(4, 1fr);
       gap: 0.75rem;
       width: 100%;
-      margin-top: 0.5rem;
+      margin-top: 0.1rem;
       }
       .quick-buttons button {
       padding: 0.5rem;
       border-radius: 10px;
       font-size: 0.9rem;
-      background-color: #e5e7eb;
-      color: #111827;
-      border: 1px solid #d1d5db;
+      background-color: var(--quickbutton-bg);
+      color: var(--text-color);
+      border: 1px solid var(--quickbutton-bg);
       box-shadow: none;
       }
       .quick-buttons button:hover {
-      background-color: #d1d5db;
+      background-color: var(--quickbutton-hover);
       }
       /* Custom range inputs */
       .custom-range-inputs {
@@ -289,6 +316,21 @@
       font-weight: bold;
       font-size: 1.25rem;
       margin: 0 0.5rem;
+      }
+      .line-separator {
+        display: flex;
+        align-items: center;
+        text-align: center;
+        width: 100%;
+        color: var(--text-color);
+      }
+
+      .line-separator::before,
+      .line-separator::after {
+        content: "";
+        flex: 1;
+        border-bottom: 1px solid var(--text-color);
+        margin: 0 1rem;
       }
       /* Load button */
       .load-btn {
@@ -385,6 +427,7 @@
     </style>
   </head>
   <body>
+    <div class="theme-toggle" id="themeToggle" onclick="toggleTheme()">🌙</div>
     <h2>Hyperliquid Funding History</h2>
     <div id="spinnerOverlay" class="spinner-overlay">
       <div class="spinner"></div>
@@ -412,8 +455,8 @@
                 <span class="arrow" id="viewModeDropdownArrow">▾</span>
               </div>
               <div class="dropdown-list" id="viewModeDropdownList">
-                <div class="dropdown-item" onclick="selectViewMode('hourly')">Hourly</div>
-                <div class="dropdown-item" onclick="selectViewMode('annualized')">Annualized</div>
+                <div class="dropdown-item" tabindex="0" onclick="selectViewMode('hourly')" onkeydown="handleViewModeKeydown(event, 'hourly')">Hourly</div>
+                <div class="dropdown-item" tabindex="0" onclick="selectViewMode('annualized')" onkeydown="handleViewModeKeydown(event, 'annualized')">Annualized</div>
               </div>
             </div>
           </div>
@@ -439,13 +482,14 @@
         <span class="date-separator">-</span>
         <input type="datetime-local" id="customEnd" />
       </div>
+      <button class="load-btn" onclick="loadFundingData('custom')">Load</button>
+      <div class="line-separator"><span>or</span></div>
       <div class="quick-buttons">
         <button onclick="applyQuickRange('1d')">Last 24 Hours</button>
         <button onclick="applyQuickRange('3d')">Last 3 Days</button>
         <button onclick="applyQuickRange('7d')">Last 7 Days</button>
         <button onclick="applyQuickRange('30d')">Last 30 Days</button>
       </div>
-      <button class="load-btn" onclick="loadFundingData('custom')">Load</button>
     </div>
     <div id="maStatsTable" class="ma-stats-table">
       <table>
@@ -472,6 +516,16 @@
       let favorites = JSON.parse(localStorage.getItem('favoriteTokens') || '[]');
       let selectedToken = localStorage.getItem('selectedToken') || null;
       let fundingChart = null;
+
+      // Toggle theme between light and dark, persist choice, update toggle icon and reload data
+      function toggleTheme() {
+        const isDark = document.body.classList.toggle('dark');
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        document.getElementById('themeToggle').textContent = isDark ? '☀️' : '🌙';
+        if (fundingChart) {
+          loadFundingData('custom');
+        }
+      }
       
       // =========================
       // Token Dropdown Handlers
@@ -524,6 +578,11 @@
           list.innerHTML = '';
           list.appendChild(input);
           filterTokens();
+          setTimeout(() => {
+            const list = document.getElementById('dropdownList');
+            const items = list.querySelectorAll('.dropdown-item');
+            if (items.length) items[0].focus();
+          }, 10);
           setTimeout(() => input.focus(), 0);
         }
       }
@@ -598,7 +657,9 @@
       function createDropdownItem(token) {
         const item = document.createElement('div');
         item.className = 'dropdown-item' + (token === selectedToken ? ' selected-token' : '');
+        item.tabIndex = 0;
         item.onclick = () => selectToken(token);
+        item.onkeydown = (e) => handleDropdownItemKeydown(e, token);
       
         const nameSpan = document.createElement('span');
         nameSpan.textContent = token;
@@ -664,6 +725,10 @@
           closeAllDropdowns();
           list.style.display = 'block';
           arrow.classList.add('open');
+          setTimeout(() => {
+            const items = document.querySelectorAll('#viewModeDropdownList .dropdown-item');
+            if (items.length) items[0].focus();
+          }, 10);
         }
       }
       
@@ -700,6 +765,10 @@
           closeAllDropdowns();
           list.style.display = 'block';
           arrow.classList.add('open');
+          setTimeout(() => {
+            const items = document.querySelectorAll('#datasetDropdownList .dropdown-item');
+            if (items.length) items[0].focus();
+          }, 10);
         }
       }
       
@@ -721,6 +790,8 @@
         datasets.forEach(label => {
           const labelWrapper = document.createElement('label');
           labelWrapper.className = 'dropdown-item dataset-option';
+          labelWrapper.tabIndex = 0;
+          labelWrapper.onkeydown = (e) => handleDatasetKeydown(e, checkbox, label);
       
           const checkbox = document.createElement('input');
           checkbox.type = 'checkbox';
@@ -734,7 +805,7 @@
       
           const text = document.createElement('span');
           text.textContent = label;
-      
+          
           labelWrapper.appendChild(checkbox);
           labelWrapper.appendChild(text);
           list.appendChild(labelWrapper);
@@ -991,7 +1062,7 @@
                 ctx.moveTo(x, topY);
                 ctx.lineTo(x, bottomY);
                 ctx.lineWidth = 1;
-                ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)'; // adapt for theme if needed
+                ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
                 ctx.stroke();
                 ctx.restore();
               }
@@ -1156,12 +1227,104 @@
       
         loadFundingData('custom');
       }
-      
+
+      // ===============================
+      // Dropdown Keyboard Navigation
+      // ===============================
+      function handleDropdownItemKeydown(e, token) {
+        const current = document.activeElement;
+
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          let next = current.nextElementSibling;
+          while (next && !next.classList.contains('dropdown-item')) {
+            next = next.nextElementSibling;
+          }
+          next?.focus();
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          let prev = current.previousElementSibling;
+          while (prev && !prev.classList.contains('dropdown-item')) {
+            prev = prev.previousElementSibling;
+          }
+          prev?.focus();
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          selectToken(token);
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          closeAllDropdowns();
+          document.getElementById('dropdown').querySelector('.selected')?.focus();
+        }
+      }
+
+      function handleViewModeKeydown(e, mode) {
+        const current = document.activeElement;
+
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          let next = current.nextElementSibling;
+          while (next && !next.classList.contains('dropdown-item')) {
+            next = next.nextElementSibling;
+          }
+          next?.focus();
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          let prev = current.previousElementSibling;
+          while (prev && !prev.classList.contains('dropdown-item')) {
+            prev = prev.previousElementSibling;
+          }
+          prev?.focus();
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          selectViewMode(mode);
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          closeAllDropdowns();
+          document.getElementById('viewModeDropdown').querySelector('.selected')?.focus();
+        }
+      }
+
+      function handleDatasetKeydown(e, checkbox, label) {
+        const current = document.activeElement;
+
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          let next = current.nextElementSibling;
+          while (next && !next.classList.contains('dropdown-item')) {
+            next = next.nextElementSibling;
+          }
+          next?.focus();
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          let prev = current.previousElementSibling;
+          while (prev && !prev.classList.contains('dropdown-item')) {
+            prev = prev.previousElementSibling;
+          }
+          prev?.focus();
+        } else if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          checkbox.checked = !checkbox.checked;
+          toggleDatasetVisibility(label, checkbox.checked);
+          updateDatasetLabel();
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          closeAllDropdowns();
+          document.getElementById('datasetDropdown').querySelector('.selected')?.focus();
+        }
+      }
+
       // =======================
       // Initialization on page load
       // =======================
       
       window.onload = async () => {
+        // Apply saved theme preference
+        if (localStorage.getItem('theme') === 'dark') {
+          document.body.classList.add('dark');
+          document.getElementById('themeToggle').textContent = '☀️';
+        }
+        
         // Set selected token from storage or default
         selectedToken = localStorage.getItem('selectedToken') || 'BTC';
         document.getElementById('selectedTokenLabel').innerText = selectedToken;
