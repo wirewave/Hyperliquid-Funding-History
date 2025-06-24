@@ -535,19 +535,23 @@
        * Fetch tokens info from API and store them globally, then render token dropdown.
        */
       async function fetchAndRenderTokens() {
-        try {
-          const response = await fetch('https://api.hyperliquid.xyz/info', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: 'meta' }),
-          });
-          const meta = await response.json();
-          allTokens = meta.universe.map(t => t.name);
-          renderDropdown();
-        } catch (error) {
-          console.error('Failed to fetch tokens:', error);
-        }
+      try {
+        const response = await fetch('https://api.hyperliquid.xyz/info', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'meta' }),
+        });
+
+        const meta = await response.json();
+        allTokens = meta.universe
+          .filter(t => !t.isDelisted)  // remove delisted tokens
+          .map(t => t.name);
+
+        renderDropdown();
+      } catch (error) {
+        console.error('Failed to fetch tokens:', error);
       }
+    }
       
       /**
        * Toggle the main token dropdown visibility and setup search input.
