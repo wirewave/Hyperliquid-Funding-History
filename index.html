@@ -58,7 +58,7 @@
       .theme-toggle {
       position: fixed;
       top: 1rem;
-      left: 1rem;
+      right: 1rem;
       cursor: pointer;
       font-size: 1.5rem;
       user-select: none;
@@ -393,150 +393,6 @@
       text-align: right;
       opacity: 0.7;
       }
-      .leaderboard-panel {
-        position: fixed;
-        top: 0;
-        right: 0;
-        height: 100vh;
-        width: 250px;
-        background: var(--card-color);
-        color: var(--text-color);
-        border-left: 1px solid var(--input-border);
-        box-shadow: -2px 0 10px var(--box-shadow);
-        display: flex;
-        flex-direction: column;
-        padding: 1rem;
-        box-sizing: border-box;
-        z-index: 200;
-        transition: transform 0.3s ease;
-      }
-      .leaderboard-panel.closed {
-        transform: translateX(100%);
-      }
-      .leaderboard-divider {
-        position: fixed;
-        top: 0;
-        right: 248px;
-        width: 2px;
-        height: 100vh;
-        background: white;
-        z-index: 5;
-      }
-      .leaderboard-toggle {
-        position: absolute;
-        left: -34px;
-        margin: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        background: var(--button-bg);
-        color: white;
-        border-radius: 6px 0 0 6px;
-        padding: 0.5rem;
-        cursor: pointer;
-        user-select: none;
-        font-size: 8.5px;
-      }
-      .leaderboard-list {
-        overflow-y: auto;
-        flex: 1;
-        margin-top: 1rem;
-      }
-      .main-content {
-        transition: margin-right 0.3s ease;
-        margin-right: 100px;
-      }
-
-      .main-content.with-leaderboard {
-        margin-right: 0px;
-      }
-      .leaderboard-item {
-        background: var(--card-color);
-        border-radius: 12px;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        box-shadow: 0 2px 6px var(--box-shadow);
-        transition: transform 0.2s ease;
-      }
-      .leaderboard-item:hover {
-        background: var(--dropdown-hover)
-      }
-      .leaderboard-spark {
-        width: 100%;
-        height: 30px;
-      }
-
-      .rate-positive {
-        color: #22c55e;
-      }
-      .rate-negative {
-        color: #ef4444;
-      }
-      .rate-neutral {
-        color: #9ca3af;
-      }
-
-.leaderboard-item:last-child {
-  border-bottom: none;
-}
-
-.leaderboard-spark {
-  width: 100%;
-  height: 35px;
-  margin-top: 0.5rem;
-}
-
-.leaderboard-stats {
-  font-size: 0.9rem;
-  line-height: 1.4;
-}
-
-.leaderboard-stats span {
-  font-weight: 500;
-}
-.leaderboard-label {
-  font-weight: bold;
-  font-size: 1.2rem;
-  text-align: center;
-  width: 100%;
-  justify-content: center;
-  display: flex;
-  margin-bottom: 0.5rem;
-}
-
-.leaderboard-spark {
-  width: 100%;
-  height: 35px;
-  margin-bottom: 0.5rem;
-}
-
-.leaderboard-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  text-align: center;
-  font-size: 0.85rem;
-  gap: 0.2rem;
-}
-
-.leaderboard-stats .stat-label {
-  color: var(--text-color-section);
-  font-weight: 500;
-}
-
-.leaderboard-stats .stat-value {
-  font-weight: 600;
-}
-
-.rate-positive {
-  color: #22c55e;
-}
-
-.rate-negative {
-  color: #ef4444;
-}
-
-.rate-neutral {
-  color: #9ca3af;
-}
       /* Responsive layout for controls */
       @media (max-width: 1023px) {
       .row {
@@ -571,7 +427,6 @@
     </style>
   </head>
   <body>
-    <div class="main-content" id="mainContent">
     <div class="theme-toggle" id="themeToggle" onclick="toggleTheme()">🌙</div>
     <h2>Hyperliquid Funding History</h2>
     <div id="spinnerOverlay" class="spinner-overlay">
@@ -655,14 +510,6 @@
       <div class="ma-footnote">* MA = Moving Average</div>
     </div>
     <canvas id="fundingChart" width="800" height="400"></canvas>
-    </div>
-    <div class="leaderboard-panel" id="leaderboardPanel">
-      <div class="leaderboard-toggle" id="leaderboardToggle">★</div>
-      <div class="leaderboard-divider"></div>
-      <div class="leaderboard-list" id="leaderboardList">
-        <!-- dynamically populated -->
-      </div>
-    </div>
     <script>
       // *** Global State Variables ***
       let allTokens = [];
@@ -705,110 +552,6 @@
         console.error('Failed to fetch tokens:', error);
       }
     }
-
-    async function buildLeaderboard() {
-  const panel = document.getElementById('leaderboardList');
-  panel.innerHTML = '';
-
-  const limitedFavorites = favorites.slice(0, 25);
-  if (limitedFavorites.length === 0) {
-    panel.innerHTML = '<p style="font-size: 0.9rem;">No favorites selected.</p>';
-    return;
-  }
-
-  const fetches = limitedFavorites.map(token =>
-    fetch('https://api.hyperliquid.xyz/info', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type: 'fundingHistory',
-        coin: token,
-        startTime: Date.now() - (8 * 24 * 60 * 60 * 1000), // 8 days ago
-        endTime: Date.now()
-      })
-    }).then(res => res.json().then(data => ({ token, data })))
-  );
-
-  const results = await Promise.all(fetches);
-
-  results.forEach(({ token, data }) => {
-    const rates = data.map(d => parseFloat(d.fundingRate) * 100);
-    const last = rates[rates.length - 1] || 0;
-    const avg24h = averageFromTime(data, 24);
-    const avg7d = averageFromTime(data, 7 * 24);
-
-    const item = document.createElement('div');
-    item.className = 'leaderboard-item';
-    item.onclick = () => selectToken(token);
-
-    const label = document.createElement('div');
-    label.className = 'leaderboard-label';
-    label.innerText = token;
-
-    const sparkCanvas = document.createElement('canvas');
-    sparkCanvas.className = 'leaderboard-spark';
-    sparkCanvas.id = `spark-${token}`;
-
-    const stats = document.createElement('div');
-    stats.className = 'leaderboard-stats';
-    stats.innerHTML = `
-      <div class="stat-label">Now</div>
-      <div class="stat-label">24h</div>
-      <div class="stat-label">7d</div>
-
-      <div class="stat-value ${rateClass(last)}">${last.toFixed(4)}%</div>
-      <div class="stat-value ${rateClass(avg24h)}">${avg24h.toFixed(4)}%</div>
-      <div class="stat-value ${rateClass(avg7d)}">${avg7d.toFixed(4)}%</div>
-    `;
-
-    // Append all elements in order
-    item.appendChild(label);
-    item.appendChild(sparkCanvas);
-    item.appendChild(stats);
-    panel.appendChild(item);
-
-    // Now that the canvas is in the DOM, build the sparkline
-    buildSparkline(`spark-${token}`, rates);
-  });
-}
-
-function averageFromTime(data, hours) {
-  const now = Date.now();
-  const cutoff = now - hours * 60 * 60 * 1000;
-  const filtered = data.filter(d => d.time >= cutoff);
-  if (filtered.length === 0) return 0;
-  const avg = filtered.reduce((sum, d) => sum + parseFloat(d.fundingRate) * 100, 0) / filtered.length;
-  return avg;
-}
-
-function rateClass(val) {
-  if (val > 0.001) return 'rate-positive';
-  if (val < -0.001) return 'rate-negative';
-  return 'rate-neutral';
-}
-
-function buildSparkline(canvasId, values) {
-  const ctx = document.getElementById(canvasId).getContext('2d');
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: values.map((_, i) => i),
-      datasets: [{
-        data: values,
-        borderColor: '#3b82f6',
-        pointRadius: 0,
-        borderWidth: 1.2,
-        tension: 0.2
-      }]
-    },
-    options: {
-      responsive: false,
-      animation: false,
-      plugins: { legend: { display: false }, tooltip: { enabled: false } },
-      scales: { x: { display: false }, y: { display: false } }
-    }
-  });
-}
       
       /**
        * Toggle the main token dropdown visibility and setup search input.
@@ -889,18 +632,6 @@ function buildSparkline(canvasId, values) {
           list.appendChild(noResults);
         }
       }
-
-      document.getElementById('leaderboardToggle').onclick = () => {
-        const panel = document.getElementById('leaderboardPanel');
-        panel.classList.toggle('closed');
-
-        const mainContent = document.querySelector('.main-content');
-        mainContent.classList.toggle('with-leaderboard');
-
-        // Update arrow icon direction
-        document.getElementById('leaderboardToggle').textContent = 
-          panel.classList.contains('closed') ? '★' : '★';
-      };
       
       /**
        * Update the selected token label in the dropdown.
@@ -975,7 +706,6 @@ function buildSparkline(canvasId, values) {
         }
         localStorage.setItem('favoriteTokens', JSON.stringify(favorites));
         filterTokens();
-        buildLeaderboard();
       }
       
       // ===============================
@@ -1625,8 +1355,6 @@ function buildSparkline(canvasId, values) {
       
         // Initial load of funding data with custom range
         loadFundingData('custom');
-
-        buildLeaderboard();
       }
     </script>
   </body>
