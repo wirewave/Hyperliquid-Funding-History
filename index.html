@@ -1290,7 +1290,6 @@
         document.getElementById('customEnd').value = toStr(now);
       
         localStorage.setItem('customStart', toStr(start));
-        localStorage.setItem('customEnd', toStr(now));
       
         loadFundingData('custom');
       }
@@ -1399,12 +1398,12 @@
       
         // Load saved custom date range or apply default quick range 1d
         const savedStart = localStorage.getItem('customStart');
-        const savedEnd = localStorage.getItem('customEnd');
-        if (savedStart && savedEnd) {
+        if (savedStart) {
           document.getElementById('customStart').value = savedStart;
-          document.getElementById('customEnd').value = savedEnd;
+          const now = new Date();
+          document.getElementById('customEnd').value = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
         } else {
-          applyQuickRange('1d');
+          applyQuickRange('3d');
         }
       
         // Fetch tokens and build dropdowns
